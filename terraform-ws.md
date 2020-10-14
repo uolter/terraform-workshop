@@ -1,0 +1,1 @@
+../../hacker-slides/slides/terraform-ws.md
