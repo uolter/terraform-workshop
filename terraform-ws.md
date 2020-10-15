@@ -294,6 +294,7 @@ name     =  "myvpc"
 
 ```
 terraform plan -var-file=./dev.tfvars
+terraform plan -var-file=./prod.tfvars
 ```
 
 ---
@@ -325,6 +326,25 @@ terraform plan -var-file=./dev.tfvars
 
 ---
 
+
+## Terraform dry code
+
+```
+# Include all settings from the root terragrunt.hcl file
+include {
+  path = find_in_parent_folders()
+}
+
+terraform {
+  source = "git::git@github.com:pagopa/io-infrastructure-modules-new.git//azurerm_resource_group?ref=v2.1.0"
+}
+
+inputs = {
+  name = "common"
+}
+```
+
+---
 ## Terreform dry code
 
 * manage many environment without duplications
@@ -427,7 +447,7 @@ common
 ├── redis
 │   ├── redis_cache
 │   │   └── terragrunt.hcl
-│   ├── storage_account
+│   ├── storage_accountte
 │   │   └── terragrunt.hcl
 │   └── subnet
 │       └── terragrunt.hcl
@@ -446,3 +466,23 @@ common
 
 ~$ terragrunt destroy-all
 ```
+
+---
+
+## IO Infrastructure
+
+* [live](https://github.com/pagopa/io-infrastructure-live-new) 
+* [modules](https://github.com/pagopa/io-infrastructure-modules-new) 
+
+---
+
+## Useful links
+
+* [terraform](https://www.terraform.io/)
+* [terragrunt](https://terragrunt.gruntwork.io/)
+* [registry](https://registry.terraform.io/)
+* [tfenv](https://github.com/cloudposse/tfenv)
+* [tgenv](https://github.com/cunymatthieu/tgenv)
+* [azure provider](https://www.terraform.io/docs/providers/index.html)
+* [builtin function](https://www.terraform.io/docs/configuration/functions.html)
+
