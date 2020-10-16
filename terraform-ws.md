@@ -1,8 +1,6 @@
 # Terraform & Terragrunt
 ## 16 Oct 2020 Workshop
 
-
-
 <!-- .slide: data-transition="zoom" -->
 
 ---
@@ -31,6 +29,7 @@
 * there are many [providers](https://registry.terraform.io/browse/providers?tier=partner)
 
 ---
+
 ### azure provider example
 
 ```
@@ -46,6 +45,7 @@ resource "azurerm_resource_group" "myterraformgroup" {
 
     tags = {
         environment = "Terraform Demo"
+        created_by  = "terraform"
     }
 }
 
@@ -83,11 +83,12 @@ resource "aws_vpc" "main" {
 
 - Individual
     
-    write -->  plan (& check) --> create
+    write ->  plan (& check) -> create
 
 - Team
 
-  checkout latest code --> write & plan a PR --> create & merge
+  checkout latest code -> write & plan a PR --> create & merge
+  
   
 ---
 
@@ -116,7 +117,7 @@ resource "aws_vpc" "main" {
 ---
 ## Dependency (Implicit)
 
-_main.tf_
+<div align="left">_main.tf_</div>
 ```
 resource "azurerm_resource_group" "mygroup" {
     name     = "myResourceGroup"
@@ -150,7 +151,7 @@ resource "azurerm_subnet" "mysubnet" {
 
 ## Dependency (explicit)
 
-_main.tf_
+<div align="left">_main.tf_</div>
 
 ```
 ... 
@@ -194,6 +195,7 @@ resource "azurerm_storage_account" "example" {
 ```
 
 ---
+
 ## State management
 
 
@@ -229,14 +231,16 @@ Keep the state file **encrypted** at rest.
 
 ## Advanced backend
 
-Be very carful
 
 ```
-> # download state file
-> terraform state pull > terraform.tfstate
-> # edit the file
-> terraform push terraform.tfstate
+>$ # download state file
+>$ terraform state pull > terraform.tfstate
+>$ # edit the file
+>$ terraform push terraform.tfstate
 ```
+- Be very carfeful
+- Always make a backup copy
+
 
 ---
 
@@ -259,7 +263,7 @@ resource "aws_vpc" "main" {
 
 ---
 
-## Types
+## [Types](https://github.com/pagopa/io-infrastructure-modules-new/blob/master/azurerm_app_service/vars.tf)
 
 * string
 * number
@@ -269,11 +273,12 @@ resource "aws_vpc" "main" {
 * tuple([<type>, < type >, < type >])
 * object({})
 
+
 ---
 
 ## Assign Variables
 
-
+<br/>
 
 ```
 export TF_VAR_vpc_cidr="10.10.0.0/16"
@@ -284,8 +289,7 @@ export TF_VAR_vpc_cidr="10.10.0.0/16"
 terraform plan -var="vpc_cidr=10.1.10.0/19" -var="name=main"
 ```
 
-
-_terraform.tfvars_
+<div align="left">_terraform.tfvars_</div>
 
 ```
 vpc_cird = "10.0.0.0/32"
@@ -299,7 +303,16 @@ terraform plan -var-file=./prod.tfvars
 
 ---
 
-## Modules
+## Order values loading
+
+* environment variables
+* terraform.tfvars
+* terraform.tfvars.json
+* any -var-file command line option
+
+---
+
+## [Modules](https://github.com/pagopa/io-infrastructure-modules-new/blob/master/azurerm_function_app/main.tf)
 
 * block of reusable code
 * any folder with terraform code in there
@@ -317,6 +330,49 @@ terraform plan -var-file=./prod.tfvars
 
 ---
 
+## Loop with count 
+
+<div align="left">main.tf</div>
+
+```
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_iam_user" "users" {
+  count = length(var.user_names)
+  name  = var.user_names[count.index]
+}
+```
+
+<div align="left">variables.tf</div>
+
+```
+variable "user_names" {
+  description = "Create IAM users with these names"
+  type        = list(string)
+  default     = ["Paul_Dirac", "Erwin_Schrodinger", 
+                 "Wolfgang_Pauli"]
+}
+```
+---
+
+## [Dynamic blocks](https://github.com/pagopa/io-infrastructure-modules-new/blob/1af3569706d12c33aea1a540896a47db0e38362b/azurerm_function_app/main.tf#L83)
+
+```
+    dynamic "ip_restriction" {
+      for_each = var.allowed_subnets
+      iterator = subnet
+
+      content {
+        subnet_id = subnet.value
+      }
+    }
+  }
+```
+
+---
+
 ## Terragrunt
 
 * keep your terraform code dry
@@ -324,10 +380,12 @@ terraform plan -var-file=./prod.tfvars
 * keep your CLI flags dry
 * exacute terraform commands on multiple modules at once
 
+<!-- .slide: data-transition="zoom" -->
+
 ---
 
 
-## Terraform dry code
+## [Terraform dry code](https://github.com/pagopa/io-infrastructure-live-new/blob/master/prod/westeurope/common/resource_group/terragrunt.hcl)
 
 ```
 # Include all settings from the root terragrunt.hcl file
@@ -405,7 +463,7 @@ inputs = {
 
 ---
 
-## Dry backend configuration 
+## [Dry backend configuration](https://github.com/pagopa/io-infrastructure-live-new/blob/50772ff78e5f92816e426bc5c579fb97ce47dc29/terragrunt.hcl#L13)
 
 * backend configuration **does not** support variables or expression.
 
